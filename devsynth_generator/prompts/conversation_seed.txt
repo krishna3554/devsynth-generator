@@ -1,0 +1,7 @@
+Create a realistic developer-assistant conversation.
+
+Task type: {task_type}
+Difficulty: {difficulty}
+Language: {language}
+
+The conversation should include a concrete request, implementation reasoning, validation steps, and concise tradeoffs.

@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "devsynth-generator"
+version = "0.1.0"
+description = "Synthetic developer conversation generator with validation and export utilities."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "python-dotenv>=1.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+devsynth-generate = "devsynth_generator.scripts.generate_dataset:main"
+devsynth-validate = "devsynth_generator.scripts.validate_dataset:main"
+
+[tool.setuptools.packages.find]
+include = ["devsynth_generator*"]
+
+[tool.setuptools.package-data]
+devsynth_generator = [
+    "prompts/*.txt",
+    "schemas/*.json",
+    "datasets/*.jsonl",
+]

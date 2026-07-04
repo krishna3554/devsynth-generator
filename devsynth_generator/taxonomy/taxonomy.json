@@ -1,0 +1,23 @@
+{
+  "$schema": "../schemas/taxonomy.schema.json",
+  "task_types": [
+    "bug_fix",
+    "feature_request",
+    "code_review",
+    "refactor",
+    "test_generation",
+    "debugging_session",
+    "architecture_discussion"
+  ],
+  "difficulties": ["easy", "medium", "hard"],
+  "languages": ["python", "typescript", "go", "rust", "java"],
+  "roles": ["user", "assistant"],
+  "tools": ["shell", "editor", "git", "test_runner", "package_manager", "browser"],
+  "interaction_patterns": [
+    "single_turn_answer",
+    "multi_turn_debugging",
+    "implementation_with_tests",
+    "review_findings",
+    "design_discussion"
+  ]
+}

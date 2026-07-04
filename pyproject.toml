@@ -28,5 +28,6 @@ include = ["devsynth_generator*"]
 devsynth_generator = [
     "prompts/*.txt",
     "schemas/*.json",
+    "taxonomy/*.json",
     "datasets/*.jsonl",
 ]

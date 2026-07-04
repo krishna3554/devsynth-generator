@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from devsynth_generator.taxonomy import default_taxonomy
+from devsynth_generator.taxonomy import Taxonomy, default_taxonomy
 
 
 @dataclass(frozen=True)
@@ -18,8 +18,8 @@ class ValidationError:
 class ConversationValidator:
     """Validate records against required fields and taxonomy values."""
 
-    def __init__(self) -> None:
-        self.taxonomy = default_taxonomy()
+    def __init__(self, taxonomy: Taxonomy | None = None) -> None:
+        self.taxonomy = taxonomy or default_taxonomy()
 
     def validate_record(self, record: dict[str, Any]) -> list[ValidationError]:
         record_id = str(record.get("id", "<missing>"))
@@ -35,6 +35,10 @@ class ConversationValidator:
             errors.append(ValidationError(record_id, "difficulty", "Unknown difficulty"))
         if record.get("language") not in self.taxonomy.languages:
             errors.append(ValidationError(record_id, "language", "Unknown language"))
+        if "tools" in record:
+            errors.extend(self._validate_list_values(record_id, record["tools"], "tools", self.taxonomy.tools))
+        if "interaction_pattern" in record and record["interaction_pattern"] not in self.taxonomy.interaction_patterns:
+            errors.append(ValidationError(record_id, "interaction_pattern", "Unknown interaction pattern"))
 
         messages = record.get("messages")
         if not isinstance(messages, list) or not messages:
@@ -51,6 +55,21 @@ class ConversationValidator:
                 errors.append(ValidationError(record_id, f"messages[{index}].content", "Content is required"))
 
         return errors
+
+    def _validate_list_values(
+        self,
+        record_id: str,
+        values: Any,
+        field: str,
+        allowed_values: tuple[str, ...],
+    ) -> list[ValidationError]:
+        if not isinstance(values, list):
+            return [ValidationError(record_id, field, "Must be a list")]
+        return [
+            ValidationError(record_id, f"{field}[{index}]", f"Unknown {field} value")
+            for index, value in enumerate(values)
+            if value not in allowed_values
+        ]
 
     def validate_many(self, records: list[dict[str, Any]]) -> list[ValidationError]:
         errors: list[ValidationError] = []

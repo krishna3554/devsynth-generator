@@ -5,6 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from pydantic import ValidationError as PydanticValidationError
+
+from devsynth_generator.models import Conversation
 from devsynth_generator.taxonomy import Taxonomy, default_taxonomy
 
 
@@ -25,36 +28,70 @@ class ConversationValidator:
         record_id = str(record.get("id", "<missing>"))
         errors: list[ValidationError] = []
 
-        for field in ("id", "task_type", "difficulty", "language", "messages"):
-            if field not in record:
-                errors.append(ValidationError(record_id, field, "Missing required field"))
+        try:
+            conversation = Conversation.model_validate(record)
+        except PydanticValidationError as error:
+            return [
+                ValidationError(record_id, self._format_location(item["loc"]), item["msg"])
+                for item in error.errors()
+            ]
 
-        if record.get("task_type") not in self.taxonomy.task_types:
+        if conversation.task_type not in self.taxonomy.task_types:
             errors.append(ValidationError(record_id, "task_type", "Unknown task type"))
-        if record.get("difficulty") not in self.taxonomy.difficulties:
+        if conversation.category is not None and conversation.category not in self.taxonomy.categories:
+            errors.append(ValidationError(record_id, "category", "Unknown category"))
+        if conversation.subcategory is not None and conversation.subcategory not in self.taxonomy.subcategories:
+            errors.append(ValidationError(record_id, "subcategory", "Unknown subcategory"))
+        if conversation.intent is not None and conversation.intent not in self.taxonomy.intents:
+            errors.append(ValidationError(record_id, "intent", "Unknown intent"))
+        if conversation.difficulty not in self.taxonomy.difficulties:
             errors.append(ValidationError(record_id, "difficulty", "Unknown difficulty"))
-        if record.get("language") not in self.taxonomy.languages:
+        if conversation.learning_stage is not None and conversation.learning_stage not in self.taxonomy.learning_stages:
+            errors.append(ValidationError(record_id, "learning_stage", "Unknown learning stage"))
+        if (
+            conversation.conversation_length is not None
+            and conversation.conversation_length not in self.taxonomy.conversation_lengths
+        ):
+            errors.append(ValidationError(record_id, "conversation_length", "Unknown conversation length"))
+        if conversation.language not in self.taxonomy.languages:
             errors.append(ValidationError(record_id, "language", "Unknown language"))
-        if "tools" in record:
-            errors.extend(self._validate_list_values(record_id, record["tools"], "tools", self.taxonomy.tools))
-        if "interaction_pattern" in record and record["interaction_pattern"] not in self.taxonomy.interaction_patterns:
+        errors.extend(
+            ValidationError(record_id, f"code_snippets[{index}].language", "Unknown code snippet language")
+            for index, snippet in enumerate(conversation.code_snippets)
+            if snippet.language not in self.taxonomy.languages
+        )
+        errors.extend(self._validate_list_values(record_id, conversation.tools, "tools", self.taxonomy.tools))
+        if (
+            conversation.interaction_pattern is not None
+            and conversation.interaction_pattern not in self.taxonomy.interaction_patterns
+        ):
             errors.append(ValidationError(record_id, "interaction_pattern", "Unknown interaction pattern"))
 
-        messages = record.get("messages")
-        if not isinstance(messages, list) or not messages:
-            errors.append(ValidationError(record_id, "messages", "Messages must be a non-empty list"))
-            return errors
-
-        for index, message in enumerate(messages):
-            if not isinstance(message, dict):
-                errors.append(ValidationError(record_id, f"messages[{index}]", "Message must be an object"))
-                continue
-            if message.get("role") not in self.taxonomy.roles:
+        for index, message in enumerate(conversation.messages):
+            if message.role not in self.taxonomy.roles:
                 errors.append(ValidationError(record_id, f"messages[{index}].role", "Unknown role"))
-            if not isinstance(message.get("content"), str) or not message["content"].strip():
-                errors.append(ValidationError(record_id, f"messages[{index}].content", "Content is required"))
+            errors.extend(
+                ValidationError(
+                    record_id,
+                    f"messages[{index}].code_snippets[{snippet_index}].language",
+                    "Unknown code snippet language",
+                )
+                for snippet_index, snippet in enumerate(message.code_snippets)
+                if snippet.language not in self.taxonomy.languages
+            )
 
         return errors
+
+    def _format_location(self, location: tuple[str | int, ...]) -> str:
+        field = ""
+        for part in location:
+            if isinstance(part, int):
+                field += f"[{part}]"
+            elif field:
+                field += f".{part}"
+            else:
+                field = part
+        return field
 
     def _validate_list_values(
         self,

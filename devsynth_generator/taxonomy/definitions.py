@@ -24,10 +24,15 @@ ROLES = ("user", "assistant")
 
 @dataclass(frozen=True)
 class Taxonomy:
-    task_types: tuple[str, ...]
-    difficulties: tuple[str, ...]
-    languages: tuple[str, ...]
-    roles: tuple[str, ...]
+    categories: tuple[str, ...] = ()
+    subcategories: tuple[str, ...] = ()
+    intents: tuple[str, ...] = ()
+    task_types: tuple[str, ...] = ()
+    difficulties: tuple[str, ...] = ()
+    learning_stages: tuple[str, ...] = ()
+    conversation_lengths: tuple[str, ...] = ()
+    languages: tuple[str, ...] = ()
+    roles: tuple[str, ...] = ()
     tools: tuple[str, ...] = ()
     interaction_patterns: tuple[str, ...] = ()
 
@@ -35,8 +40,13 @@ class Taxonomy:
 def load_taxonomy(path: Path = TAXONOMY_PATH) -> Taxonomy:
     data = json.loads(path.read_text(encoding="utf-8"))
     return Taxonomy(
+        categories=tuple(data.get("categories", data["task_types"])),
+        subcategories=tuple(data.get("subcategories", ())),
+        intents=tuple(data.get("intents", ())),
         task_types=tuple(data["task_types"]),
         difficulties=tuple(data["difficulties"]),
+        learning_stages=tuple(data.get("learning_stages", ())),
+        conversation_lengths=tuple(data.get("conversation_lengths", ())),
         languages=tuple(data["languages"]),
         roles=tuple(data["roles"]),
         tools=tuple(data.get("tools", ())),

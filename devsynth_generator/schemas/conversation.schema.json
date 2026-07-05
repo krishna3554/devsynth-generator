@@ -6,7 +6,12 @@
   "properties": {
     "id": { "type": "string" },
     "task_type": { "type": "string" },
+    "category": { "type": "string" },
+    "subcategory": { "type": "string" },
+    "intent": { "type": "string" },
     "difficulty": { "type": "string" },
+    "learning_stage": { "type": "string" },
+    "conversation_length": { "type": "string" },
     "language": { "type": "string" },
     "messages": {
       "type": "array",
@@ -20,6 +25,11 @@
         }
       }
     },
+    "tools": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "interaction_pattern": { "type": "string" },
     "metadata": { "type": "object" }
   }
 }

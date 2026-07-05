@@ -21,6 +21,12 @@ class Settings:
     output_dir: Path
     default_count: int
     random_seed: int
+    openrouter_api_key: str | None
+    openrouter_base_url: str
+    openrouter_model: str
+    openrouter_timeout_seconds: float
+    openrouter_max_retries: int
+    openrouter_backoff_seconds: float
 
 
 def load_settings(env_file: Path | None = None) -> Settings:
@@ -37,6 +43,12 @@ def load_settings(env_file: Path | None = None) -> Settings:
         output_dir=output_dir,
         default_count=int(os.getenv("DEVSYNTH_DEFAULT_COUNT", "10")),
         random_seed=int(os.getenv("DEVSYNTH_RANDOM_SEED", "42")),
+        openrouter_api_key=os.getenv("OPENROUTER_API_KEY"),
+        openrouter_base_url=os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
+        openrouter_model=os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini"),
+        openrouter_timeout_seconds=float(os.getenv("OPENROUTER_TIMEOUT_SECONDS", "60")),
+        openrouter_max_retries=int(os.getenv("OPENROUTER_MAX_RETRIES", "3")),
+        openrouter_backoff_seconds=float(os.getenv("OPENROUTER_BACKOFF_SECONDS", "1.0")),
     )
 
 

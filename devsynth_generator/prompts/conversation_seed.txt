@@ -1,7 +1,18 @@
 Create a realistic developer-assistant conversation.
 
 Task type: {task_type}
+Category: {category}
+Subcategory: {subcategory}
+Intent: {intent}
 Difficulty: {difficulty}
+Learning stage: {learning_stage}
+Conversation length: {conversation_length}
 Language: {language}
+Interaction pattern: {interaction_pattern}
+Tools: {tools}
+Target turn count: {turn_count}
 
 The conversation should include a concrete request, implementation reasoning, validation steps, and concise tradeoffs.
+
+Return only JSON matching this output schema:
+{output_schema}

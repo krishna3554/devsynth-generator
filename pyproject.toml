@@ -9,6 +9,8 @@ description = "Synthetic developer conversation generator with validation and ex
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "openai>=1.0.0",
+    "pydantic>=2.7.0",
     "python-dotenv>=1.0.1",
 ]
 
@@ -19,6 +21,7 @@ dev = [
 
 [project.scripts]
 devsynth-generate = "devsynth_generator.scripts.generate_dataset:main"
+devsynth-generate-llm = "devsynth_generator.scripts.generate_llm_dataset:main"
 devsynth-validate = "devsynth_generator.scripts.validate_dataset:main"
 
 [tool.setuptools.packages.find]

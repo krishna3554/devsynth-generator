@@ -1,5 +1,31 @@
 {
   "$schema": "../schemas/taxonomy.schema.json",
+  "categories": [
+    "bug_fix",
+    "feature_request",
+    "code_review",
+    "refactor",
+    "test_generation",
+    "debugging_session",
+    "architecture_discussion"
+  ],
+  "subcategories": [
+    "api_design",
+    "data_modeling",
+    "frontend_state",
+    "backend_service",
+    "testing_strategy",
+    "performance",
+    "developer_tooling"
+  ],
+  "intents": [
+    "ask_for_implementation",
+    "ask_for_diagnosis",
+    "ask_for_review",
+    "ask_for_explanation",
+    "ask_for_tests",
+    "ask_for_refactor"
+  ],
   "task_types": [
     "bug_fix",
     "feature_request",
@@ -10,6 +36,8 @@
     "architecture_discussion"
   ],
   "difficulties": ["easy", "medium", "hard"],
+  "learning_stages": ["novice", "advanced_beginner", "competent", "proficient"],
+  "conversation_lengths": ["short", "medium", "long"],
   "languages": ["python", "typescript", "go", "rust", "java"],
   "roles": ["user", "assistant"],
   "tools": ["shell", "editor", "git", "test_runner", "package_manager", "browser"],

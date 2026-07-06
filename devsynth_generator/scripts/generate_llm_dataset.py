@@ -7,9 +7,10 @@ import logging
 
 from devsynth_generator.clients import OpenRouterClient
 from devsynth_generator.config import configure_logging, load_settings
+from devsynth_generator.deduplication import SemanticDeduplicator
 from devsynth_generator.exporter import DatasetExporter
 from devsynth_generator.generator import LLMScenarioGenerator
-from devsynth_generator.validator import ConversationValidator
+from devsynth_generator.pipeline import BatchGenerationPipeline
 
 LOGGER = logging.getLogger(__name__)
 
@@ -22,6 +23,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--model", default=None, help="OpenRouter model id.")
     parser.add_argument("--temperature", type=float, default=0.7, help="Sampling temperature.")
     parser.add_argument("--max-tokens", type=int, default=None, help="Maximum completion tokens.")
+    parser.add_argument("--max-parse-retries", type=int, default=2, help="Retries for invalid model JSON.")
+    parser.add_argument("--dedupe", action="store_true", help="Enable semantic duplicate detection before append.")
+    parser.add_argument("--dedupe-threshold", type=float, default=None, help="Cosine similarity duplicate threshold.")
     return parser
 
 
@@ -36,20 +40,26 @@ def main() -> None:
         seed=settings.random_seed,
         temperature=args.temperature,
         max_tokens=args.max_tokens,
+        max_parse_retries=args.max_parse_retries,
     )
-    conversations = generator.generate(args.count or settings.default_count)
-
-    errors = ConversationValidator().validate_many([conversation.to_dict() for conversation in conversations])
-    if errors:
-        for error in errors:
-            LOGGER.error("%s %s: %s", error.record_id, error.field, error.message)
-        raise SystemExit(1)
 
     exporter = DatasetExporter(settings.output_dir)
-    if args.format == "jsonl":
-        path = exporter.to_jsonl(conversations, args.filename)
-    else:
-        path = exporter.to_json(conversations, args.filename)
+    if args.format != "jsonl":
+        raise SystemExit("Resumable LLM generation currently supports JSONL output only")
+    deduplicator = SemanticDeduplicator(threshold=args.dedupe_threshold) if args.dedupe else None
+    result = BatchGenerationPipeline(generator=generator, exporter=exporter, deduplicator=deduplicator).run(
+        count=args.count or settings.default_count,
+        filename=args.filename,
+    )
+    path = result.path
+    LOGGER.info(
+        "Batch complete path=%s existing=%s generated=%s total=%s requested=%s",
+        path,
+        result.existing_count,
+        result.generated_count,
+        result.total_count,
+        result.requested_count,
+    )
     LOGGER.info("OpenRouter token usage: %s", client.usage.to_dict())
     print(path)
 

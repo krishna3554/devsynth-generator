@@ -27,6 +27,8 @@ class Settings:
     openrouter_timeout_seconds: float
     openrouter_max_retries: int
     openrouter_backoff_seconds: float
+    dedup_model: str
+    dedup_threshold: float
 
 
 def load_settings(env_file: Path | None = None) -> Settings:
@@ -49,6 +51,8 @@ def load_settings(env_file: Path | None = None) -> Settings:
         openrouter_timeout_seconds=float(os.getenv("OPENROUTER_TIMEOUT_SECONDS", "60")),
         openrouter_max_retries=int(os.getenv("OPENROUTER_MAX_RETRIES", "3")),
         openrouter_backoff_seconds=float(os.getenv("OPENROUTER_BACKOFF_SECONDS", "1.0")),
+        dedup_model=os.getenv("DEVSYNTH_DEDUP_MODEL", "sentence-transformers/all-MiniLM-L6-v2"),
+        dedup_threshold=float(os.getenv("DEVSYNTH_DEDUP_THRESHOLD", "0.92")),
     )
 
 

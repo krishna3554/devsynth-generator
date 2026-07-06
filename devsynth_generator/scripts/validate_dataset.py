@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 
 from devsynth_generator.config import configure_logging, load_settings
-from devsynth_generator.validator import ConversationValidator
+from devsynth_generator.validator import ValidationPipeline
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ def main() -> None:
         for line in args.path.read_text(encoding="utf-8").splitlines()
         if line.strip()
     ]
-    errors = ConversationValidator().validate_many(records)
+    errors = ValidationPipeline().validate_many(records).errors
     if errors:
         for error in errors:
             LOGGER.error("%s %s: %s", error.record_id, error.field, error.message)

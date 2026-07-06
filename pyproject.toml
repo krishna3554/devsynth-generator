@@ -18,6 +18,9 @@ dependencies = [
 dev = [
     "pytest>=8.0.0",
 ]
+semantic = [
+    "sentence-transformers>=3.0.0",
+]
 
 [project.scripts]
 devsynth-generate = "devsynth_generator.scripts.generate_dataset:main"

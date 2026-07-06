@@ -68,7 +68,26 @@ def test_llm_scenario_generator_fills_missing_coverage_fields():
 
 def test_llm_scenario_generator_rejects_invalid_json():
     client = FakeOpenRouterClient(["not json"])
-    generator = LLMScenarioGenerator(client=client, seed=5)
+    generator = LLMScenarioGenerator(client=client, seed=5, max_parse_retries=0)
 
     with pytest.raises(LLMScenarioGenerationError):
         generator.generate(1)
+
+
+def test_llm_scenario_generator_retries_parse_failures():
+    client = FakeOpenRouterClient(["not json", json.dumps(valid_payload())])
+    generator = LLMScenarioGenerator(client=client, seed=5, max_parse_retries=1)
+
+    conversation = generator.generate(1)[0]
+
+    assert conversation.id == "model-made"
+    assert len(client.prompts) == 2
+
+
+def test_llm_scenario_generator_extracts_fenced_json():
+    client = FakeOpenRouterClient([f"```json\n{json.dumps(valid_payload())}\n```"])
+    generator = LLMScenarioGenerator(client=client, seed=5)
+
+    conversation = generator.generate(1)[0]
+
+    assert conversation.id == "model-made"

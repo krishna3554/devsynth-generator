@@ -27,6 +27,14 @@ class DatasetExporter:
         LOGGER.info("Wrote JSONL dataset to %s", path)
         return path
 
+    def append_jsonl(self, conversation: Conversation, filename: str) -> Path:
+        path = self.output_dir / filename
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(conversation.to_dict(), ensure_ascii=True) + "\n")
+            handle.flush()
+        LOGGER.info("Appended conversation %s to %s", conversation.id, path)
+        return path
+
     def to_json(self, conversations: Iterable[Conversation], filename: str) -> Path:
         path = self.output_dir / filename
         records = [conversation.to_dict() for conversation in conversations]

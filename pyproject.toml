@@ -26,6 +26,7 @@ semantic = [
 devsynth-generate = "devsynth_generator.scripts.generate_dataset:main"
 devsynth-generate-llm = "devsynth_generator.scripts.generate_llm_dataset:main"
 devsynth-validate = "devsynth_generator.scripts.validate_dataset:main"
+devsynth-evaluate = "devsynth_generator.scripts.evaluate_dataset:main"
 
 [tool.setuptools.packages.find]
 include = ["devsynth_generator*"]

@@ -26,6 +26,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-parse-retries", type=int, default=2, help="Retries for invalid model JSON.")
     parser.add_argument("--dedupe", action="store_true", help="Enable semantic duplicate detection before append.")
     parser.add_argument("--dedupe-threshold", type=float, default=None, help="Cosine similarity duplicate threshold.")
+    parser.add_argument("--quality-eval", action="store_true", help="Enable LLM quality evaluation gate.")
+    parser.add_argument("--quality-threshold", type=float, default=None, help="Minimum overall quality score (0.0-1.0).")
+    parser.add_argument("--quality-model", default=None, help="Model to use for quality evaluation.")
     return parser
 
 
@@ -47,7 +50,29 @@ def main() -> None:
     if args.format != "jsonl":
         raise SystemExit("Resumable LLM generation currently supports JSONL output only")
     deduplicator = SemanticDeduplicator(threshold=args.dedupe_threshold) if args.dedupe else None
-    result = BatchGenerationPipeline(generator=generator, exporter=exporter, deduplicator=deduplicator).run(
+
+    quality_evaluator = None
+    if args.quality_eval:
+        from devsynth_generator.quality import QualityConfig, QualityEvaluator
+
+        quality_config = QualityConfig(
+            threshold=args.quality_threshold if args.quality_threshold is not None else settings.quality_threshold,
+            temperature=settings.quality_temperature,
+            model=args.quality_model or settings.quality_model,
+        )
+        quality_evaluator = QualityEvaluator(client=client, config=quality_config)
+        LOGGER.info(
+            "Quality evaluation enabled: threshold=%.2f model=%s",
+            quality_config.threshold,
+            quality_config.model or client.model,
+        )
+
+    result = BatchGenerationPipeline(
+        generator=generator,
+        exporter=exporter,
+        deduplicator=deduplicator,
+        quality_evaluator=quality_evaluator,
+    ).run(
         count=args.count or settings.default_count,
         filename=args.filename,
     )
@@ -66,3 +91,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

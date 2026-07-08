@@ -1,0 +1,38 @@
+You are an expert evaluator of synthetic developer-assistant conversations.
+
+Score the following conversation on four quality dimensions. For each dimension, assign an integer score from 1 (worst) to 10 (best) and provide a brief reasoning sentence.
+
+## Scoring Rubric
+
+**technical_accuracy** — Are the technical statements, code samples, API references, and explanations factually correct? Does the assistant avoid hallucinated libraries, wrong syntax, or misleading advice?
+- 9-10: Entirely correct, production-ready advice.
+- 7-8: Minor inaccuracies that would not mislead a developer.
+- 4-6: Contains noticeable errors but the general approach is sound.
+- 1-3: Fundamentally wrong or dangerous advice.
+
+**helpfulness** — Does the assistant's response solve the user's problem? Are the steps actionable and complete? Does it address edge cases or follow-up questions?
+- 9-10: Fully solves the problem with clear, actionable steps.
+- 7-8: Mostly complete; minor gaps that a developer could fill.
+- 4-6: Partially helpful but missing key information.
+- 1-3: Does not address the user's actual question.
+
+**clarity** — Is the conversation well-structured and easy to follow? Are explanations concise without sacrificing necessary detail? Is the language professional?
+- 9-10: Crystal clear, well-organized, professional tone.
+- 7-8: Clear with minor formatting or verbosity issues.
+- 4-6: Understandable but poorly organized or overly verbose.
+- 1-3: Confusing, disorganized, or incoherent.
+
+**realism** — Does the conversation feel like a plausible real developer-assistant interaction? Are the user questions natural? Does the assistant respond as a competent developer would?
+- 9-10: Indistinguishable from a real conversation.
+- 7-8: Realistic with minor unnatural phrasing.
+- 4-6: Clearly synthetic but still useful for training.
+- 1-3: Robotic, formulaic, or nonsensical flow.
+
+## Conversation to Evaluate
+
+{conversation_json}
+
+## Response Format
+
+Return ONLY valid JSON matching this schema:
+{output_schema}

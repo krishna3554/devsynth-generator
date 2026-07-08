@@ -6,7 +6,7 @@ import json
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from pydantic import ValidationError as PydanticValidationError
 
@@ -15,6 +15,9 @@ from devsynth_generator.exporter import DatasetExporter
 from devsynth_generator.generator import LLMScenarioGenerator, ScenarioSpec
 from devsynth_generator.models import Conversation
 from devsynth_generator.validator import ValidationError, ValidationPipeline
+
+if TYPE_CHECKING:
+    from devsynth_generator.quality import QualityEvaluator
 
 LOGGER = logging.getLogger(__name__)
 
@@ -46,11 +49,13 @@ class BatchGenerationPipeline:
         exporter: DatasetExporter,
         validator: ValidationPipeline | None = None,
         deduplicator: SemanticDeduplicator | None = None,
+        quality_evaluator: QualityEvaluator | None = None,
     ) -> None:
         self.generator = generator
         self.exporter = exporter
         self.validator = validator or ValidationPipeline(taxonomy=generator.taxonomy)
         self.deduplicator = deduplicator
+        self.quality_evaluator = quality_evaluator
 
     def run(self, *, count: int, filename: str) -> BatchGenerationResult:
         if count < 0:
@@ -84,6 +89,19 @@ class BatchGenerationPipeline:
                     )
                     raise ValueError(
                         f"Generated conversation {duplicate.duplicate_id} duplicates {duplicate.canonical_id}"
+                    )
+            if self.quality_evaluator is not None:
+                quality_result = self.quality_evaluator.evaluate(conversation)
+                # Persist quality scores in conversation metadata before export.
+                conversation.metadata.__dict__["quality_scores"] = quality_result.to_dict()
+                if not quality_result.passed:
+                    dims = ", ".join(
+                        f"{d.name}={d.score}/10" for d in quality_result.dimensions
+                    )
+                    raise ValueError(
+                        f"Generated conversation {conversation.id} failed quality evaluation: "
+                        f"overall={quality_result.overall_score:.4f} < "
+                        f"threshold={quality_result.threshold} ({dims})"
                     )
             self.exporter.append_jsonl(conversation, filename)
             existing_conversations.append(conversation)
@@ -151,3 +169,4 @@ class BatchGenerationPipeline:
     def _log_validation_errors(self, record_id: str, errors: list[ValidationError]) -> None:
         for error in errors:
             LOGGER.error("%s %s: %s", record_id, error.field, error.message)
+

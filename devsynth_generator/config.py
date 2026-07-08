@@ -32,6 +32,9 @@ class Settings:
     quality_threshold: float
     quality_model: str | None
     quality_temperature: float
+    split_train_ratio: float
+    split_validation_ratio: float
+    split_test_ratio: float
 
 
 def load_settings(env_file: Path | None = None) -> Settings:
@@ -61,6 +64,9 @@ def load_settings(env_file: Path | None = None) -> Settings:
         quality_threshold=float(os.getenv("DEVSYNTH_QUALITY_THRESHOLD", "0.7")),
         quality_model=quality_model_env if quality_model_env else None,
         quality_temperature=float(os.getenv("DEVSYNTH_QUALITY_TEMPERATURE", "0.2")),
+        split_train_ratio=float(os.getenv("DEVSYNTH_SPLIT_TRAIN_RATIO", "0.8")),
+        split_validation_ratio=float(os.getenv("DEVSYNTH_SPLIT_VALIDATION_RATIO", "0.1")),
+        split_test_ratio=float(os.getenv("DEVSYNTH_SPLIT_TEST_RATIO", "0.1")),
     )
 
 

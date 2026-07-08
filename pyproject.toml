@@ -27,6 +27,8 @@ devsynth-generate = "devsynth_generator.scripts.generate_dataset:main"
 devsynth-generate-llm = "devsynth_generator.scripts.generate_llm_dataset:main"
 devsynth-validate = "devsynth_generator.scripts.validate_dataset:main"
 devsynth-evaluate = "devsynth_generator.scripts.evaluate_dataset:main"
+devsynth-split = "devsynth_generator.scripts.split_dataset:main"
+devsynth-docs = "devsynth_generator.scripts.generate_docs:main"
 
 [tool.setuptools.packages.find]
 include = ["devsynth_generator*"]

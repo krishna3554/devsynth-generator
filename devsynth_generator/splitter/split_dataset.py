@@ -199,10 +199,17 @@ class DatasetSplitter:
             n = len(group)
 
             if n < 3:
-                # Too small for meaningful split; round-robin across splits.
+                # Too small for proportional slicing; assign each conversation
+                # to a split randomly weighted by the configured ratios.
+                weights = [
+                    self.config.train_ratio,
+                    self.config.validation_ratio,
+                    self.config.test_ratio,
+                ]
                 buckets = [train, validation, test]
-                for i, conv in enumerate(group):
-                    buckets[i % 3].append(conv)
+                for conv in group:
+                    chosen = rng.choices(buckets, weights=weights, k=1)[0]
+                    chosen.append(conv)
                 continue
 
             # Compute split boundaries.

@@ -169,7 +169,10 @@ python -m devsynth_generator.scripts.generate_llm_dataset \
 python -m devsynth_generator.scripts.split_dataset \
   devsynth_generator/datasets/conversations.jsonl \
   --output-dir datasets/
+<<<<<<< HEAD
 
+=======
+>>>>>>> fec7fc8 (Sample-output)
 # 3. Generate documentation
 python -m devsynth_generator.scripts.generate_docs \
   --input-dir datasets/ --output-dir .

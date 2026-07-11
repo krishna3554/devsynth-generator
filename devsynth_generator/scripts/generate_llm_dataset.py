@@ -29,6 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--quality-eval", action="store_true", help="Enable LLM quality evaluation gate.")
     parser.add_argument("--quality-threshold", type=float, default=None, help="Minimum overall quality score (0.0-1.0).")
     parser.add_argument("--quality-model", default=None, help="Model to use for quality evaluation.")
+    parser.add_argument("--max-retries", type=int, default=None, help="Max retries per sample on validation failure (default: 5).")
     return parser
 
 
@@ -67,11 +68,13 @@ def main() -> None:
             quality_config.model or client.model,
         )
 
+    max_retries = args.max_retries if args.max_retries is not None else settings.generation_max_retries
     result = BatchGenerationPipeline(
         generator=generator,
         exporter=exporter,
         deduplicator=deduplicator,
         quality_evaluator=quality_evaluator,
+        max_retries=max_retries,
     ).run(
         count=args.count or settings.default_count,
         filename=args.filename,

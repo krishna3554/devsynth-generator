@@ -86,7 +86,7 @@ def test_semantic_deduplicator_validates_threshold():
         SemanticDeduplicator(threshold=1.5, embedder=FakeEmbedder())
 
 
-def test_batch_pipeline_rejects_semantic_duplicates(tmp_path):
+def test_batch_pipeline_skips_semantic_duplicates(tmp_path):
     exporter = DatasetExporter(tmp_path)
     deduplicator = SemanticDeduplicator(threshold=0.9, embedder=FakeEmbedder())
     existing = conversation("existing", "same-topic already generated")
@@ -94,9 +94,14 @@ def test_batch_pipeline_rejects_semantic_duplicates(tmp_path):
 
     generator = DuplicateBatchGenerator()
 
-    with pytest.raises(ValueError, match="duplicates"):
-        BatchGenerationPipeline(
-            generator=generator,
-            exporter=exporter,
-            deduplicator=deduplicator,
-        ).run(count=2, filename="out.jsonl")
+    # With retry logic, duplicates are retried then skipped — not raised.
+    result = BatchGenerationPipeline(
+        generator=generator,
+        exporter=exporter,
+        deduplicator=deduplicator,
+        max_retries=2,
+    ).run(count=2, filename="out.jsonl")
+
+    assert result.generated_count == 0
+    assert result.failed_count == 1
+

@@ -35,6 +35,7 @@ class Settings:
     split_train_ratio: float
     split_validation_ratio: float
     split_test_ratio: float
+    generation_max_retries: int
 
 
 def load_settings(env_file: Path | None = None) -> Settings:
@@ -67,6 +68,7 @@ def load_settings(env_file: Path | None = None) -> Settings:
         split_train_ratio=float(os.getenv("DEVSYNTH_SPLIT_TRAIN_RATIO", "0.8")),
         split_validation_ratio=float(os.getenv("DEVSYNTH_SPLIT_VALIDATION_RATIO", "0.1")),
         split_test_ratio=float(os.getenv("DEVSYNTH_SPLIT_TEST_RATIO", "0.1")),
+        generation_max_retries=int(os.getenv("DEVSYNTH_MAX_GENERATION_RETRIES", "5")),
     )
 
 

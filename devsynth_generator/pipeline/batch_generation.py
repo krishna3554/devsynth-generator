@@ -32,6 +32,7 @@ DEFAULT_MAX_RETRIES = 5
 # These should NOT be retried.
 _FATAL_API_ERROR_KEYWORDS = frozenset({
     "invalid api key",
+    "missing authentication header",
     "authentication",
     "unauthorized",
     "invalid model",

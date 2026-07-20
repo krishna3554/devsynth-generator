@@ -159,4 +159,5 @@ class OpenRouterClient:
                 )
                 self.sleeper(delay)
 
-        raise OpenRouterClientError(f"OpenRouter request failed after {attempts} attempts") from last_error
+        detail = f": {last_error}" if last_error is not None else ""
+        raise OpenRouterClientError(f"OpenRouter request failed after {attempts} attempts{detail}") from last_error

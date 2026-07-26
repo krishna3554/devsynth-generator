@@ -3,6 +3,7 @@
 A high-quality synthetic multi-turn developer conversation dataset generator.
 Automatically generates dataset and makes a custom filename output with quality validor.
 
+
 ## Layout
 
 - `devsynth_generator/config.py` loads environment-aware settings with `pathlib`, `logging`, and `dotenv`.

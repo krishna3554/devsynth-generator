@@ -1,7 +1,7 @@
 # devsynth-generator
 
 A high-quality synthetic multi-turn developer conversation dataset generator.
-Automatically generates dataset and makes a custom filename output with quality validor.
+Automatically generates dataset and makes a custom filename output with quality validor. Whole end to end pipeline to produce high quality conversational dataset.
 
 
 ## Layout

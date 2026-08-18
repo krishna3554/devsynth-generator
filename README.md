@@ -1,33 +1,48 @@
 # devsynth-generator
 
 A high-quality synthetic multi-turn developer conversation dataset generator.
-Automatically generates dataset and makes a custom filename output with quality validor. Whole end to end pipeline to produce high quality conversational dataset.
-Best quality validator to produce high quality dataset.
 
-## Layout
+Automatically generates realistic developer conversations with an end-to-end pipeline that includes LLM-backed generation, schema validation, quality evaluation, semantic deduplication, stratified splitting, and publication-ready documentation — all with resumable batch processing and custom output filenames.
 
-- `devsynth_generator/config.py` loads environment-aware settings with `pathlib`, `logging`, and `dotenv`.
-- `generator/` creates deterministic, scenario-based, and LLM-backed conversations.
-- `pipeline/` runs resumable batch generation.
-- `clients/` contains the OpenRouter client.
-- `parser/` extracts and validates model JSON responses.
-- `validator/` validates generated records.
-- `quality/` LLM-based quality evaluation (accuracy, helpfulness, clarity, realism).
-- `splitter/` stratified dataset splitting with statistics.
-- `docs_generator/` publication-ready documentation generation.
-- `deduplication/` semantic deduplication via sentence-transformers.
-- `exporter/` writes datasets as JSONL or JSON.
-- `taxonomy/` defines categories, intents, tools, roles, and difficulty values.
-- `prompts/` stores reusable prompt templates.
-- `schemas/` stores dataset schemas.
-- `datasets/` stores generated sample data.
-- `scripts/` contains CLI entry points.
+## Features
+
+- **Deterministic seed generation** — taxonomy-driven conversations with no API key required
+- **LLM-backed generation** — realistic multi-turn conversations via OpenRouter
+- **Resumable batch pipeline** — picks up from the last valid sample on restart
+- **Comprehensive validation** — schema, taxonomy, PII detection, and metadata checks
+- **Quality evaluation** — LLM-scored accuracy, helpfulness, clarity, and realism
+- **Semantic deduplication** — cosine-similarity filtering via sentence-transformers
+- **Stratified splitting** — train/validation/test splits with per-split statistics
+- **Documentation generation** — README, Dataset Card, Changelog, Citation, Schema, and Taxonomy docs
+
+## Project Layout
+
+```
+devsynth_generator/
+├── config.py               # Environment-aware settings (pathlib + dotenv)
+├── models.py               # Pydantic data models
+├── clients/                # OpenRouter API client
+├── generator/              # Deterministic, scenario-based, and LLM-backed generators
+├── pipeline/               # Resumable batch generation pipeline
+├── parser/                 # JSON response extraction and validation
+├── validator/              # Schema, taxonomy, PII, and metadata validation
+├── quality/                # LLM-based quality evaluation
+├── deduplication/          # Semantic deduplication (sentence-transformers)
+├── splitter/               # Stratified dataset splitting with statistics
+├── docs_generator/         # Publication-ready documentation generation
+├── exporter/               # JSONL / JSON export
+├── taxonomy/               # Categories, intents, tools, roles, difficulty values
+├── prompts/                # Reusable prompt templates
+├── schemas/                # Dataset schemas
+├── datasets/               # Generated sample data
+└── scripts/                # CLI entry points
+```
 
 ## Setup
 
 ```bash
 # Clone and install
-git clone https://github.com/your-org/devsynth-generator.git
+git clone https://github.com/krishna3554/devsynth-generator.git
 cd devsynth-generator
 python3 -m venv .venv
 source .venv/bin/activate
@@ -49,6 +64,21 @@ python -m devsynth_generator.scripts.validate_dataset devsynth_generator/dataset
 ```
 
 ## CLI Tools
+
+After installing with `pip install -e .`, the following commands are available:
+
+| Command | Module | Description |
+|---------|--------|-------------|
+| `devsynth-generate` | `scripts.generate_dataset` | Deterministic seed generation |
+| `devsynth-generate-llm` | `scripts.generate_llm_dataset` | LLM-backed generation |
+| `devsynth-validate` | `scripts.validate_dataset` | Dataset validation |
+| `devsynth-evaluate` | `scripts.evaluate_dataset` | Quality evaluation |
+| `devsynth-split` | `scripts.split_dataset` | Stratified splitting |
+| `devsynth-docs` | `scripts.generate_docs` | Documentation generation |
+
+You can also run each tool as a module with `python -m devsynth_generator.scripts.<name>`.
+
+---
 
 ### 1. Generate Seed Conversations
 
@@ -138,12 +168,21 @@ python -m devsynth_generator.scripts.generate_docs \
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `OPENROUTER_API_KEY` | — | API key for LLM generation (required for LLM features) |
+| `OPENROUTER_BASE_URL` | `https://openrouter.ai/api/v1` | OpenRouter API base URL |
 | `OPENROUTER_MODEL` | `openai/gpt-4o-mini` | Model to use for generation |
+| `OPENROUTER_TIMEOUT_SECONDS` | `60` | Request timeout in seconds |
+| `OPENROUTER_MAX_RETRIES` | `3` | Max retries on API failure |
+| `OPENROUTER_BACKOFF_SECONDS` | `1.0` | Backoff delay between retries |
 | `DEVSYNTH_OUTPUT_DIR` | `devsynth_generator/datasets` | Default output directory |
+| `DEVSYNTH_DEFAULT_COUNT` | `10` | Default number of conversations to generate |
 | `DEVSYNTH_RANDOM_SEED` | `42` | Random seed for reproducibility |
 | `DEVSYNTH_LOG_LEVEL` | `INFO` | Logging verbosity |
+| `DEVSYNTH_DEDUP_MODEL` | `sentence-transformers/all-MiniLM-L6-v2` | Embedding model for deduplication |
 | `DEVSYNTH_DEDUP_THRESHOLD` | `0.92` | Cosine similarity threshold for dedup |
+| `DEVSYNTH_QUALITY_MODEL` | *(uses generation model)* | Override model for quality evaluation |
 | `DEVSYNTH_QUALITY_THRESHOLD` | `0.7` | Minimum quality score to accept |
+| `DEVSYNTH_QUALITY_TEMPERATURE` | `0.2` | Temperature for quality evaluation calls |
+| `DEVSYNTH_MAX_GENERATION_RETRIES` | `5` | Max retries per conversation generation |
 | `DEVSYNTH_SPLIT_TRAIN_RATIO` | `0.8` | Training split ratio |
 | `DEVSYNTH_SPLIT_VALIDATION_RATIO` | `0.1` | Validation split ratio |
 | `DEVSYNTH_SPLIT_TEST_RATIO` | `0.1` | Test split ratio |
@@ -158,6 +197,8 @@ pytest tests/ -v
 pytest tests/test_quality_evaluator.py -v
 pytest tests/test_dataset_splitter.py -v
 pytest tests/test_docs_generator.py -v
+pytest tests/test_batch_generation.py -v
+pytest tests/test_semantic_deduplicator.py -v
 ```
 
 ## Full Pipeline Example
@@ -171,16 +212,22 @@ python -m devsynth_generator.scripts.generate_llm_dataset \
 python -m devsynth_generator.scripts.split_dataset \
   devsynth_generator/datasets/conversations.jsonl \
   --output-dir datasets/
-<<<<<<< HEAD
 
-=======
->>>>>>> fec7fc8 (Sample-output)
 # 3. Generate documentation
 python -m devsynth_generator.scripts.generate_docs \
   --input-dir datasets/ --output-dir .
 ```
 
+## Contributing
+
+```bash
+# Install dev dependencies
+pip install -e '.[dev]'
+
+# Run the test suite
+pytest tests/ -v
+```
+
 ## License
 
 Apache-2.0 — see [LICENSE](LICENSE).
-
